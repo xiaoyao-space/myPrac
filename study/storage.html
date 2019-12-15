@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #box {
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            color: white;
+            background-color: blue;
+            cursor: pointer;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <textarea name="" id="t1" cols="30" rows="10"></textarea>
+    <div id="box">数据同步盒子</div>
+</body>
+<script>
+     window.onload = function () {
+        var t1 = document.getElementById('t1');
+        var box = document.getElementById('box');
+        t1.oninput = function () {
+            sessionStorage.setItem('aa', t1.value);
+        }
+
+        box.onmousedown = function (e) {
+            var eve = e || window.event;
+            var disX = e.clientX - box.offsetLeft;
+            var disY = e.clientY - box.offsetTop;
+            box.onmousemove = function (e) {
+                var eve = e || window.event;
+                var positionObj = {
+                    oLeft: eve.clientX - disX,
+                    oTop: eve.clientY - disY
+                };
+                box.style.left = positionObj.oLeft + 'px';
+                box.style.top = positionObj.oTop + 'px';
+                localStorage.setItem('positionObj', JSON.stringify(positionObj));
+            }
+        }
+        box.onmouseup = function () {
+            box.onmousemove = null;
+        }
+     }
+</script>
+</html>

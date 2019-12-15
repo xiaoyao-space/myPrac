@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>音乐播放器</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <style>
+        .anchor-link {
+            color: blue;
+            text-decoration: underline;
+        }
+        h3 .active{
+            padding-right:30px;
+            background:url('./musics/play.gif') no-repeat right center ;
+        }
+        h3:hover {
+            cursor: pointer;
+        }
+        .hover-color {
+            background-color: cyan;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">音乐播放器</h1>
+    <audio id="myAudio" controls></audio>
+    <div id="songs_box">
+        <h3><a href="javascript:;" class="anchor-link">陈翔-烟火</a></h3>
+        <h3><a href="javascript:;" class="anchor-link">夏天Alex-不再联系</a></h3>
+        <h3><a href="javascript:;" class="anchor-link">陈势安-天后</a></h3>
+        <h3><a href="javascript:;" class="anchor-link">孙子涵-巴黎夜雨</a></h3>
+        <h3><a href="javascript:;" class="anchor-link">马旭东-入戏太深</a></h3>
+    </div>
+    <div class="layui-btn-container" id="btnsTool" style="padding-top: 10px;">
+        <button type="button" class="layui-btn layui-btn-sm" play-state="0">单曲循环</button>
+        <button type="button" class="layui-btn layui-btn-sm" play-state="1">随机播放</button>
+        <button type="button" class="layui-btn layui-btn-sm" play-state="2">列表播放</button>
+    </div>   
+</body>
+<script>
+    window.onload = function () {
+        
+        class PlayMusic {
+            constructor(options){
+                this.data = options.data ? options.data : [];
+                this.audio = options.audio ? document.querySelector(options.audio) : new Audio();
+                this.items = options.items ? document.querySelectorAll(options.items) : [];
+                this.state = "2";                // 默认顺序播放
+                this.nowPlay = 0;                //正在播放的歌曲
+            }
+            init(){
+                var _that = this;
+                this.items.forEach(function (item, index) {
+                    item.ondblclick = function () {
+                        _that.startPlay(index);
+                        this.firstElementChild.classList.add('active');
+                        this.classList.add('layui-bg-gray');
+                    }
+                    item.onmouseover = function () {
+                        _that.items.forEach(function (item, index) {
+                            item.classList.remove('hover-color');
+                        });
+                        this.classList.add('hover-color');
+                    }
+                    document.getElementById('songs_box').onmouseleave = function () {
+                        _that.items.forEach(function (item, index) {
+                            item.classList.remove('hover-color');
+                        });
+                    }
+                    Array.from(document.getElementById('btnsTool').children).forEach(function (item, index) {
+                        item.onclick = function () {
+                            _that.state = this.getAttribute('play-state');
+                            _that.changeState()
+                        }; 
+                    });
+                });
+            }
+            startPlay(nowIndex){
+                this.nowPlay = nowIndex;
+                this.audio.src = `./musics/${this.data[nowIndex].songName}.mp3`;
+                this.audio.play();
+                // 歌曲加播放图片
+                this.items.forEach(function (item, index) {
+                    item.firstElementChild.classList.remove('active');
+                });
+                // 歌曲当前行加背景色
+                this.items.forEach(function (item, index) {
+                    item.classList.remove('layui-bg-gray');
+                });
+            }
+            createRandom(){
+                var randomNum = Math.round(Math.random() * (this.data.length - 1));
+                return randomNum;
+            }
+            changeState(){
+                switch(this.state){
+                    case '0':
+                        this.audio.loop = true;
+                        break; 
+                    case '1':
+                        var _that = this; 
+                        this.audio.loop = false;
+                        this.audio.onended = function () {
+                            var nowSong = _that.createRandom();
+                            _that.startPlay(nowSong);
+                            Array.from(_that.items).forEach(function (item, index) {
+                                if (index === nowSong) {
+                                    item.firstElementChild.classList.add('active');
+                                    item.classList.add('layui-bg-gray');
+                                }
+                            });
+                        }
+                        break;
+                    case '2':
+                        var _that = this; 
+                        this.audio.loop = false;
+                        if (this.nowPlay < this.data.length) {
+                            this.audio.onended = function () {
+                                _that.nowPlay++;
+                                _that.startPlay(_that.nowPlay);
+                                Array.from(_that.items).forEach(function (item, index) {
+                                    if (index === _that.nowPlay) {
+                                        item.firstElementChild.classList.add('active');
+                                        item.classList.add('layui-bg-gray');
+                                    }
+                                });
+                            }
+                        } else {
+                            this.nowPlay = 0;
+                        }
+                }
+            }
+        }
+
+        var songsArr = [
+            {
+                songName: '陈翔-烟火'
+            },
+            {
+                songName: '夏天Alex-不再联系'
+            },
+            {
+                songName: '陈势安-天后'
+            },
+            {
+                songName: '孙子涵-巴黎夜雨'
+            },
+            {
+                songName: '马旭东-入戏太深'
+            }
+        ];
+        var myPlayMusic = new PlayMusic({
+            data: songsArr,
+            audio: '#myAudio',
+            items: '#songs_box>h3'
+        });
+        myPlayMusic.init();
+    }
+</script>
+</html>
